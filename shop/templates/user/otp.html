@@ -6,8 +6,8 @@
 
     <div class="col-sm-4 col-lg-3 text-center text-sm-start">
       <div class="main-logo">
-        <a href="{{url_for('home')}}">
-          <img src="static/images/logo.png" alt="logo" class="img-fluid">
+        <a href="{{url_for('forgotpassword')}}">
+            <iconify-icon icon="mdi:arrow-back-circle" width="50" height="50"></iconify-icon>
         </a>
       </div>
     </div>
@@ -22,22 +22,15 @@
                     {% endfor %}
             {% endif %}
             {% endwith %}</h4>
-          <h2 class="display-3 fw-normal text-center">login Your Account
+          <h2 class="display-3 fw-normal text-center">Enter Your Otp
           </h2>
           <form method="post">
             <div class="mb-3">
-              <input type="email" class="form-control form-control-lg" name="email" id="email"
-                placeholder="Enter Your Email Address">
-            </div>
-            <div  my-3 class="mb-3">
-              <input type="password" class="form-control form-control-lg" name="password" id="password1"
-                placeholder="Enter Your Password">
-                <div>
-                <a href="{{url_for('forgotpassword')}}">forgotpassword</a>
-              </div>
+              <input type="text" class="form-control form-control-lg" name="otp"
+                placeholder="Enter Your Otp">
             </div>
             <div class="d-grid gap-2">
-              <button type="submit" class="btn btn-dark btn-lg rounded-1">Login now</button>
+              <button type="submit" class="btn btn-dark btn-lg rounded-1">Submit now</button>
             </div>
           </form>
         </div>

@@ -22,21 +22,22 @@
             </form>
           </div>
         </div>
-
+        {% if current_user.is_authenticated %}
         <div
           class="col-sm-8 col-lg-4 d-flex justify-content-end gap-5 align-items-center mt-4 mt-sm-0 justify-content-center justify-content-sm-end">
           <div class="support-box text-end d-none d-xl-block">
-            <span class="fs-6 secondary-font text-muted">Phone</span>
-            <h5 class="mb-0">+980-34984089</h5>
+            <span class="fs-6 secondary-font text-muted">Logout:<a href="{{url_for('logout')}}" class="mx-3"><iconify-icon icon="majesticons:logout-line" width="20" height="20"></iconify-icon></a></span>
+            <h5 class="mb-0">{{current_user.email}}</h5>
           </div>
-          <div class="support-box text-end d-none d-xl-block">
-            <span class="fs-6 secondary-font text-muted">Email</span>
-            <h5 class="mb-0">waggy@gmail.com</h5>
-          </div>
-
-
-
         </div>
+        {% else %}
+        <div
+          class="col-sm-8 col-lg-4 d-flex justify-content-end gap-5 align-items-center mt-4 mt-sm-0 justify-content-center justify-content-sm-end">
+          <div class="support-box text-end d-none d-xl-block">
+            <span class="fs-6 secondary-font text-muted">Login:<a href="{{url_for('login')}}" class="mx-3"><iconify-icon icon="mynaui:login" width="20" height="20"></iconify-icon></a></span>
+          </div>
+        </div>
+        {% endif %}
       </div>
     </div>
 
