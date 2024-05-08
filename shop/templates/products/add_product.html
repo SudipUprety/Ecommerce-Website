@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+<title>{% block title %} Add Product {% endblock title %}</title>
+{% block body %}
+<div class="container py-2">
+    <div class="row py-4 pb-0 pb-sm-4 align-items-center ">
+
+      <div class="col-sm-4 col-lg-3 text-center text-sm-start">
+        <div class="main-logo">
+          <a href="{{url_for('home')}}">
+            <img src="static/images/logo.png" alt="logo" class="img-fluid">
+          </a>
+        </div>
+      </div>
+    <div class="container ">
+        <div class="offset-md-3 col-md-6 my-5 ">
+          {% include 'flash_message.html'%}
+          <h2 class="display-3 fw-normal text-center">Add Products
+          </h2>
+          <form action="/add" method="post" enctype="multipart/form-data">
+            <div class="mb-3">
+                <label for="name" class="form-label" >Name</label>
+              <input type="text" class="form-control form-control-lg" name="name" required>
+            </div>
+            <div class="mb-3">
+                <label for="price" class="form-label" >Price</label>
+                <input type="text" class="form-control form-control-lg" name="price" required>
+              </div>
+              <div class="mb-3">
+                <label for="tag" class="form-label" >Tags</label>
+                <input type="text" class="form-control form-control-lg" name="tag" required>
+              </div>
+              <div class="mb-3">
+                <input type="file" class="form-control" name="pic">
+              </div>
+            <div class="d-grid gap-2">
+              <button type="submit" class="btn btn-dark btn-lg rounded-1">Submit now</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+{% endblock body %}

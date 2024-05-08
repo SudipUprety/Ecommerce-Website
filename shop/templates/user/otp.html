@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-
+<title>{% block title %} Otp {% endblock title %}</title>
 {% block body %}
 <div class="container py-2">
   <div class="row py-4 pb-0 pb-sm-4 align-items-center ">
@@ -15,18 +15,12 @@
   </div>
     <div class="container ">
         <div class="offset-md-3 col-md-6 my-5 ">
-          <h4 style="color: red; text-align: center;">{% with messages = get_flashed_messages() %}
-            {% if messages %}
-                {% for msg in messages %}
-                     <p>{{msg}}</p>
-                    {% endfor %}
-            {% endif %}
-            {% endwith %}</h4>
+          {% include 'flash_message.html'%}
           <h2 class="display-3 fw-normal text-center">Enter Your Otp
           </h2>
           <form method="post">
             <div class="mb-3">
-              <input type="text" class="form-control form-control-lg" name="otp"
+              <input type="text" class="form-control form-control-lg" name="user_otp"
                 placeholder="Enter Your Otp">
             </div>
             <div class="d-grid gap-2">

@@ -1,0 +1,7 @@
+<h4 style="color: rgb(137, 127, 244); text-align: center;">{% with messages = get_flashed_messages() %}
+    {% if messages %}
+        {% for msg in messages %}
+             <p>{{msg}}</p>
+            {% endfor %}
+    {% endif %}
+    {% endwith %}</h4>

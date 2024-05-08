@@ -1,21 +1,21 @@
 {% extends 'base.html'%}
+<title>{% block title %} Home {% endblock title %}</title>
 <body>
-
 {% block body %}
 {% include 'navbar.html' %}
+<div class="container">
+  <div class="row">
+  {% for product in all_products %}
     {% include 'cart/cart.html' %}
+  {% endfor %}
+</div></div>
+    
     {% if current_user.is_anonymous %}
     <section id="register" style="background: url('static/images/background-img.png') no-repeat;">
         <div class="container ">
           <div class="row my-5 py-5">
             <div class="offset-md-3 col-md-6 my-5 ">
-              <h4 style="color: red; text-align: center;">{% with messages = get_flashed_messages() %}
-                {% if messages %}
-                    {% for msg in messages %}
-                         <p>{{msg}}</p>
-                        {% endfor %}
-                {% endif %}
-                {% endwith %}</h4>
+              {% include 'flash_message.html'%}
               <h2 class="display-3 fw-normal text-center">Register Your Account
               </h2>
               <form method="post">
@@ -43,6 +43,4 @@
       {% endif %}
       {% include 'footer.html' %}
 {% endblock body %}
-
-
 </body>
