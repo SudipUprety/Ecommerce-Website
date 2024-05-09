@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+<title>{% block title %} Add category {% endblock title %}</title>
+{% block body %}
+
+    <div class="container ">
+        <div class="offset-md-3 col-md-6 my-5 ">
+          {% include 'flash_message.html'%}
+          <h2 class="display-3 fw-normal text-center">Add Category
+          </h2>
+          <form method="post">
+            <div class="mb-3">
+              <input type="text" class="form-control form-control-lg" name="category"
+                placeholder="Enter Category">
+            </div>
+            <div class="d-grid gap-2">
+              <button type="submit" class="btn btn-dark btn-lg rounded-1">Add</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+{% endblock body %}

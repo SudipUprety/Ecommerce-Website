@@ -1,0 +1,27 @@
+{% extends 'base.html'%}
+<title>{% block title %} Admin_Home {% endblock title %}</title>
+<body>
+{% block body %}
+{% include 'admin/navbar.html'%}
+  <div class="container">
+    <h2>All User</h2>
+    <table class="table table-sm">
+      <thead>
+        <th>S.N</th>
+        <th>User By Email</th>
+        <th>Delete</th>
+      </thead>
+      <tbody>
+      {% for user in all_users %}
+        <tr>
+          <td>{{loop.index}}</td>
+          <td>{{user.email}}</td>
+          <td>Delete</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+      {% include 'footer.html' %}
+{% endblock body %}
+</body>

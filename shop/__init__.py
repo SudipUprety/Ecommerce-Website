@@ -31,3 +31,4 @@ mail = Mail(app)
 
 from shop.user import routes
 from shop.products import routes
+from shop.admin import routes

@@ -1,0 +1,29 @@
+{% extends 'base.html'%}
+<title>{% block title %} Admin_Home {% endblock title %}</title>
+<body>
+{% block body %}
+{% include 'admin/navbar.html'%}
+  <div class="container">
+    <h2>All Category</h2>
+    <table class="table table-sm">
+      <thead>
+        <th>S.N</th>
+        <th>Category</th>
+        <th>Edit</th>
+        <th>Delete</th>
+      </thead>
+      <tbody>
+      {% for category in all_category %}
+        <tr>
+          <td>{{loop.index}}</td>
+          <td>{{category.name}}</td>
+          <td>Edit</td>
+          <td>Delete</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+      {% include 'footer.html' %}
+{% endblock body %}
+</body>

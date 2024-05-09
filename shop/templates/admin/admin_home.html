@@ -1,0 +1,37 @@
+{% extends 'base.html'%}
+<title>{% block title %} Admin_Home {% endblock title %}</title>
+<body>
+{% block body %}
+{% include 'admin/navbar.html'%}
+  <div class="container">
+    <h2>All Products</h2>
+    <table class="table table-sm">
+      <thead>
+        <th>S.N</th>
+        <th>Product</th>
+        <th>Price</th>
+        <th>Categories</th>
+        <th>Tag</th>
+        <th>Image</th>
+        <th>Edit</th>
+        <th>Delete</th>
+      </thead>
+      <tbody>
+      {% for product in all_products %}
+        <tr>
+          <td>{{loop.index}}</td>
+          <td>{{product.name}}</td>
+          <td>{{product.price}}</td>
+          <td>{{product.category.name}}</td>
+          <td>{{product.tag}}</td>
+          <td><img src="data:{{ product.mime_type }}; base64, {{ product.image_file }}" alt="thumbnail here" class="img-fluid" alt="image" width="60" height="80"></td>
+          <td>Edit</td>
+          <td>Delete</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+      {% include 'footer.html' %}
+{% endblock body %}
+</body>
