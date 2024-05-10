@@ -6,21 +6,10 @@ from flask_login import login_user, current_user, logout_user
 import base64
 
 
-@app.route('/admin-home')
+@app.route('/admin_home')
 def admin_home():
     all_products = Product.query.all()
     return render_template('admin/admin_home.html', all_products=all_products)
-
-
-@app.route('/add_category', methods=["GET","POST"])
-def addcategory():
-    if request.method == 'POST':
-        name = request.form['category']
-        my_category = Category(name=name)
-        db.session.add(my_category)
-        db.session.commit()
-        flash('Category added successfully')
-    return render_template('admin/add_category.html')
 
 
 @app.route('/view_category')
@@ -32,3 +21,15 @@ def viewcategory():
 def viewuser():
     all_users = User.query.all()
     return render_template('admin/view_user.html', all_users=all_users)
+
+
+@app.route('/delete_user/<int:id>')
+def delete_user(id):
+    user_to_delete = User.query.get_or_404(id)
+    db.session.delete(user_to_delete)
+    db.session.commit()
+    flash('User Deleted Successfully')
+    return redirect('/view_user')
+
+
+

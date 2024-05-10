@@ -1,3 +1,4 @@
+{% block content %}
 <header>
     <div class="container py-2">
       <div class="row py-4 pb-0 pb-sm-4 align-items-center ">
@@ -18,8 +19,9 @@
         <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasNavbar" aria-labelledby="offcanvasNavbarLabel">
           <div class="offcanvas-body justify-content-between">
             <ul class="navbar-nav menu-list list-unstyled d-flex gap-md-3 mb-0">
+              
               <li class="nav-item">
-                <a href="{{url_for('admin_home')}}" class="nav-link active">Home</a>
+                <a href="{{url_for('admin_home')}}" class="nav-link">Home</a>
               </li>
              
               <li class="nav-item">
@@ -31,9 +33,21 @@
               <li class="nav-item">
                 <a href="contact.html" class="nav-link">Staff</a>
               </li>
+              {% if request.endpoint == 'admin_home' %}
+              <li class="nav-item">
+                <a class="nav-link" href="{{url_for('addproduct')}}">Add Products</a>
+              </li>
+              {% endif %}
+              {% if request.endpoint == 'viewcategory' %}
+              <li class="nav-item">
+                <a class="nav-link" href="{{url_for('addcategory')}}">Add Category</a>
+              </li>
+              {% endif %}
             </ul>
           </div>
         </div>
       </nav>
     </div>
   </header>
+  {% endblock content %}
+ 

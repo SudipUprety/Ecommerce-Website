@@ -4,6 +4,7 @@
 {% block body %}
 {% include 'admin/navbar.html'%}
   <div class="container">
+    {% include 'flash_message.html'%}
     <h2>All Products</h2>
     <table class="table table-sm">
       <thead>
@@ -11,8 +12,8 @@
         <th>Product</th>
         <th>Price</th>
         <th>Categories</th>
-        <th>Tag</th>
         <th>Image</th>
+        <th>Tag</th>
         <th>Edit</th>
         <th>Delete</th>
       </thead>
@@ -23,10 +24,10 @@
           <td>{{product.name}}</td>
           <td>{{product.price}}</td>
           <td>{{product.category.name}}</td>
-          <td>{{product.tag}}</td>
           <td><img src="data:{{ product.mime_type }}; base64, {{ product.image_file }}" alt="thumbnail here" class="img-fluid" alt="image" width="60" height="80"></td>
-          <td>Edit</td>
-          <td>Delete</td>
+          <td>{{product.tag}}</td>
+          <td><a href="/update_product/{{ product.id }}" class="btn btn-outline-secondary">Edit</a></td>
+          <td><a href="/delete_product/{{ product.id }}" class="btn btn-outline-danger">Delete</a></td>
         </tr>
         {% endfor %}
       </tbody>

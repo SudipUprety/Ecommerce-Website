@@ -4,6 +4,7 @@
 {% block body %}
 {% include 'admin/navbar.html'%}
   <div class="container">
+    {% include 'flash_message.html'%}
     <h2>All User</h2>
     <table class="table table-sm">
       <thead>
@@ -16,7 +17,7 @@
         <tr>
           <td>{{loop.index}}</td>
           <td>{{user.email}}</td>
-          <td>Delete</td>
+          <td><a href="/delete_user/{{ user.id }}" class="btn btn-outline-danger">Delete</a></td>
         </tr>
         {% endfor %}
       </tbody>

@@ -1,9 +1,10 @@
 {% extends 'base.html'%}
-<title>{% block title %} Admin_Home {% endblock title %}</title>
+<title>{% block title %} View_category {% endblock title %}</title>
 <body>
 {% block body %}
 {% include 'admin/navbar.html'%}
   <div class="container">
+    {% include 'flash_message.html'%}
     <h2>All Category</h2>
     <table class="table table-sm">
       <thead>
@@ -17,8 +18,8 @@
         <tr>
           <td>{{loop.index}}</td>
           <td>{{category.name}}</td>
-          <td>Edit</td>
-          <td>Delete</td>
+          <td><a href="/update_category/{{ category.id }}" class="btn btn-outline-secondary">Edit</a></td>
+          <td><a href="/delete_category/{{ category.id }}" class="btn btn-outline-danger">Delete</a></td>
         </tr>
         {% endfor %}
       </tbody>
