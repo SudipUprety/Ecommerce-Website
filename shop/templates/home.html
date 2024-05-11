@@ -3,6 +3,7 @@
 <body>
 {% block body %}
 {% include 'navbar.html' %}
+{% include 'flash_message.html'%}
 <div class="container">
   <div class="row">
   {% for product in all_products %}
@@ -15,7 +16,6 @@
         <div class="container ">
           <div class="row my-5 py-5">
             <div class="offset-md-3 col-md-6 my-5 ">
-              {% include 'flash_message.html'%}
               <h2 class="display-3 fw-normal text-center">Register Your Account
               </h2>
               <form method="post">

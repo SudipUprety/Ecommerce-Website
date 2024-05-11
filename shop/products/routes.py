@@ -1,11 +1,13 @@
 from flask import render_template, url_for, request, redirect, flash, session
-from shop import app, bcrypt, db, mail
+from shop import app, bcrypt, db, mail, admin_required
 from .models import Product, Category
-from flask_login import login_user, current_user, logout_user
+from flask_login import login_user, current_user, logout_user, login_required
 import base64
 
 
 @app.route('/add_category', methods=["GET","POST"])
+@login_required
+@admin_required
 def addcategory():
     if request.method == 'POST':
         name = request.form['category']
@@ -17,6 +19,8 @@ def addcategory():
 
 
 @app.route('/add', methods=["GET","POST"])
+@login_required
+@admin_required
 def addproduct():
     categories = Category.query.all()
     if request.method == 'POST':
@@ -35,6 +39,8 @@ def addproduct():
 
 
 @app.route('/update_product/<int:id>', methods=['GET', 'POST'])
+@login_required
+@admin_required
 def update_product(id):
     categories = Category.query.all()
     product_to_update = Product.query.get_or_404(id)
@@ -54,6 +60,8 @@ def update_product(id):
 
 
 @app.route('/delete_product/<int:id>')
+@login_required
+@admin_required
 def delete_product(id):
     product_to_delete = Product.query.get_or_404(id)
     db.session.delete(product_to_delete)
@@ -63,6 +71,8 @@ def delete_product(id):
 
 
 @app.route('/update_category/<int:id>', methods=['GET', 'POST'])
+@login_required
+@admin_required
 def update_category(id):
     category_to_update = Category.query.get_or_404(id)
     if request.method == 'POST':
@@ -74,6 +84,8 @@ def update_category(id):
 
 
 @app.route('/delete_category/<int:id>')
+@login_required
+@admin_required
 def delete_category(id):
     category_to_delete = Category.query.get_or_404(id)
     db.session.delete(category_to_delete)

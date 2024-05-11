@@ -1,7 +1,8 @@
-from flask import Flask
+from flask import Flask, flash, redirect, url_for
+from functools import wraps
 from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
-from flask_login import LoginManager
+from flask_login import LoginManager, current_user
 from flask_mail import Mail
 import os
 from dotenv import load_dotenv
@@ -11,8 +12,10 @@ app = Flask(__name__)
 
 app.secret_key = os.getenv('SECRET_KEY')
 
+
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///shop.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
 
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'
 app.config['MAIL_PORT'] = 587
@@ -28,6 +31,16 @@ bcrypt = Bcrypt(app)
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
 mail = Mail(app)
+
+
+def admin_required(func):
+    @wraps(func)
+    def decorated_function(*args, **kwargs):
+        if current_user.role != 'admin':
+            flash('Access Denied: You are not authorized to access this page.', 'error')
+            return redirect(url_for('home'))
+        return func(*args, **kwargs)
+    return decorated_function
 
 from shop.user import routes
 from shop.products import routes
