@@ -34,6 +34,10 @@
                 </select>
               </div>
               <div class="mb-3">
+                <label for="Desc" class="form-label">Description</label>
+                <textarea class="form-control form-control-lg" placeholder="Description about product" name="desc" required >{{product_to_update.description}}</textarea>
+              </div>
+              <div class="mb-3">
                 <label for="tag" class="form-label" >Tags</label>
                 <input type="text" class="form-control form-control-lg" name="tag" value="{{product_to_update.tag}}" required>
               </div>

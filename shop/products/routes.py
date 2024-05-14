@@ -27,11 +27,12 @@ def addproduct():
         name = request.form['name']
         price = request.form['price']
         category = request.form['category']
+        description = request.form['desc']
         tag = request.form['tag']
         pic = request.files['pic']
         img_data = pic.read()
         encoded_img = base64.b64encode(img_data).decode('utf-8')
-        my_data = Product(name=name, price=price,image_file=encoded_img, tag=tag, category_id=category)
+        my_data = Product(name=name, price=price,image_file=encoded_img, description=description, tag=tag, category_id=category)
         db.session.add(my_data)
         db.session.commit()
         flash('Product added successfully')
@@ -48,6 +49,7 @@ def update_product(id):
         product_to_update.name = request.form['name']
         product_to_update.price = request.form['price']
         product_to_update.category_id = request.form['category']
+        product_to_update.description = request.form['desc']
         product_to_update.tag = request.form['tag']
         pic = request.files['pic']   
         img_data = pic.read()
@@ -92,3 +94,9 @@ def delete_category(id):
     db.session.commit()
     flash('Category Deleted Successfully')
     return redirect('/view_category')
+
+
+@app.route('/single_product/<int:id>')
+def single_product(id):
+    product = Product.query.get_or_404(id)
+    return render_template('products/single-product.html', product=product)

@@ -1,0 +1,51 @@
+{% extends 'base.html'%}
+<title>{% block title %} Home {% endblock title %}</title>
+<body>
+{% block body %}
+<div class="container py-2">
+    <div class="row py-4 pb-0 pb-sm-4 align-items-center ">
+<div class="main-logo">
+    <a href="{{url_for('home')}}">
+      <img src="{{ url_for('static', filename='images/logo.png')}}" alt="logo" class="img-fluid">
+    </a>
+  </div>
+    </div></div>
+{% include 'flash_message.html'%}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-6">
+            <img src="data:{{ product.mime_type }}; base64, {{ product.image_file }}" alt="thumbnail here" class="img-fluid rounded-4" alt="image">
+        </div>
+        <div class="col-md-6">
+            <h4> Product name: {{ product.name }}</h4>
+            <hr>
+            <p>Product price: ${{ product.price }}</p>
+            <b>Product Description</b><br>
+            {{product.description}} <br>
+            Product tag: {{ product.tag }} <br>
+            Product category: {{ product.category.name }}
+            <hr>
+            <div class="card-text">
+                <span class="rating secondary-font">
+                  <iconify-icon icon="clarity:star-solid" class="text-primary"></iconify-icon>
+                  <iconify-icon icon="clarity:star-solid" class="text-primary"></iconify-icon>
+                  <iconify-icon icon="clarity:star-solid" class="text-primary"></iconify-icon>
+                  <iconify-icon icon="clarity:star-solid" class="text-primary"></iconify-icon>
+                  <iconify-icon icon="clarity:star-solid" class="text-primary"></iconify-icon>
+                  5.0
+                </span>
+                <h3 class="secondary-font text-primary"></h3>
+                <div class="d-flex flex-wrap mt-3">
+                  <a href="#" class="btn-cart me-3 px-4 pt-3 pb-3">
+                    <h5 class="text-uppercase m-0">Add to Cart</h5>
+                  </a>
+                  <a href="#" class="btn-wishlist px-4 pt-3 ">
+                    <iconify-icon icon="fluent:heart-28-filled" class="fs-5"></iconify-icon>
+                  </a>
+                </div>
+              </div>
+        </div>
+    </div>
+</div>
+{% endblock body %}
+</body>

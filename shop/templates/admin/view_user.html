@@ -17,12 +17,15 @@
         <tr>
           <td>{{loop.index}}</td>
           <td>{{user.email}}</td>
-          <td><a href="/delete_user/{{ user.id }}" class="btn btn-outline-danger">Delete</a></td>
+          {% if user.role == 'customer' %}
+            <td><a href="/delete_user/{{ user.id }}" class="btn btn-outline-danger">Delete</a></td>
+            {% else %}
+            <td><button class="btn btn-outline-success" disabled>Admin</button></td>
+        {% endif %}
         </tr>
         {% endfor %}
       </tbody>
     </table>
   </div>
-      {% include 'footer.html' %}
 {% endblock body %}
 </body>

@@ -37,10 +37,11 @@ def admin_required(func):
     @wraps(func)
     def decorated_function(*args, **kwargs):
         if current_user.role != 'admin':
-            flash('Access Denied: You are not authorized to access this page.', 'error')
-            return redirect(url_for('home'))
+            flash('Access Denied: You are not authorized to access admin page.')
+            return redirect(url_for('login'))
         return func(*args, **kwargs)
     return decorated_function
+
 
 from shop.user import routes
 from shop.products import routes

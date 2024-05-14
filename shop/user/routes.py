@@ -34,8 +34,6 @@ def home():
 
 @app.route("/login", methods=["GET","POST"])
 def login():
-    if current_user.is_authenticated:
-        return redirect(url_for('home'))
     if request.method=='POST':
         email = request.form["email"]
         password = request.form["password"]
@@ -48,6 +46,8 @@ def login():
             else:
             
                 flash('Login Unsuccessful. Please check email and password')
+        else:
+            flash('Register your account first')
     return render_template("user/login.html")
 
 @app.route('/logout')
@@ -122,6 +122,15 @@ def update_password():
 @app.route('/search', methods=['POST'])
 def search():
     if request.method == "POST":
+        categories = Category.query.all()
         search_query = request.form['search_query']
         search_results = Product.query.filter(or_(Product.tag.like(f"%{search_query}%"), Product.name.like(f"%{search_query}%"))).all()
-        return render_template('user/search_product.html', search_query=search_query, search_results=search_results)
+        return render_template('user/search_product.html', search_query=search_query, search_results=search_results,categories=categories)
+    
+
+@app.route('/sort_by_category/<int:category_id>')
+def sortbycategory(category_id):
+    categories = Category.query.all()
+    category = Category.query.get_or_404(category_id)
+    search_results = Product.query.filter_by(category_id=category_id).all()
+    return render_template('user/view_by_category.html', category=category, search_results=search_results, categories=categories)

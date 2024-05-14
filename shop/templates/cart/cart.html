@@ -1,9 +1,9 @@
 <div class="col-md-4 col-lg-3 my-4">
   <div class="item cat">
     <div class="card position-relative">
-      <a href="single-product.html"><img src="data:{{ product.mime_type }}; base64, {{ product.image_file }}" alt="thumbnail here" class="img-fluid rounded-4" alt="image"></a>
+      <a href="{{ url_for('single_product', id=product.id)}}"><img src="data:{{ product.mime_type }}; base64, {{ product.image_file }}" alt="thumbnail here" class="img-fluid rounded-4" alt="image"></a>
       <div class="card-body p-0">
-        <a href="single-product.html">
+        <a href="{{ url_for('single_product', id=product.id)}}">
           <h3 class="card-title pt-4 m-0">{{ product.name }}</h3>
         </a>
         <div class="card-text">
