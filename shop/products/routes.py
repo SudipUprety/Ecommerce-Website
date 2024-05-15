@@ -1,6 +1,7 @@
-from flask import render_template, url_for, request, redirect, flash, session
+from flask import render_template, url_for, request, redirect, flash, session, jsonify, abort
 from shop import app, bcrypt, db, mail, admin_required
-from .models import Product, Category
+from .models import Product, Category, Like
+from shop.user.models import User
 from flask_login import login_user, current_user, logout_user, login_required
 import base64
 
@@ -32,7 +33,7 @@ def addproduct():
         pic = request.files['pic']
         img_data = pic.read()
         encoded_img = base64.b64encode(img_data).decode('utf-8')
-        my_data = Product(name=name, price=price,image_file=encoded_img, description=description, tag=tag, category_id=category)
+        my_data = Product(name=name, price=price,image_file=encoded_img, description=description, tag=tag, category_id=category, user_id=current_user.id)
         db.session.add(my_data)
         db.session.commit()
         flash('Product added successfully')
@@ -100,3 +101,18 @@ def delete_category(id):
 def single_product(id):
     product = Product.query.get_or_404(id)
     return render_template('products/single-product.html', product=product)
+
+
+@app.route('/like/<int:id>', methods=['POST'])
+def like(id):
+    existing_like = Like.query.filter_by(product_id=id, user_id=current_user.id).first()
+    if existing_like:
+        db.session.delete(existing_like)
+        liked = False
+    else:
+        new_like = Like(product_id=id, user_id=current_user.id)
+        db.session.add(new_like)
+        liked = True
+    db.session.commit()
+    
+    return jsonify({'liked': liked})

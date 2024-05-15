@@ -31,7 +31,6 @@ def home():
     return render_template('home.html', all_products=all_products, categories=categories)
 
 
-
 @app.route("/login", methods=["GET","POST"])
 def login():
     if request.method=='POST':
@@ -49,6 +48,7 @@ def login():
         else:
             flash('Register your account first')
     return render_template("user/login.html")
+
 
 @app.route('/logout')
 def logout():
