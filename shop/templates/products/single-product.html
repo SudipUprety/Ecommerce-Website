@@ -36,11 +36,12 @@
                 </span>
                 <h3 class="secondary-font text-primary"></h3>
                 <div class="d-flex flex-wrap mt-3">
-                  <a href="#" class="btn-cart me-3 px-4 pt-3 pb-3">
+                  <a href="{{ url_for('add_to_cart', product_id=product.id) }}" class="btn-cart me-3 px-4 pt-3 pb-3">
                     <h5 class="text-uppercase m-0">Add to Cart</h5>
                   </a>
                     {% if current_user.is_authenticated %}
                     <div style="border: 1px solid rgb(212, 212, 212); padding: 10px;">
+                      <a href="{{url_for('like_user', id=product.id)}}">(<span id="like-count-{{ product.id }}">{{ product.count_likes() }}</span>)</a>
                           <button
                             id="like-btn-{{ product.id }}"
                             type="button"

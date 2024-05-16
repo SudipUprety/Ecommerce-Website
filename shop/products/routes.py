@@ -1,6 +1,6 @@
 from flask import render_template, url_for, request, redirect, flash, session, jsonify, abort
 from shop import app, bcrypt, db, mail, admin_required
-from .models import Product, Category, Like
+from .models import Product, Category, Like, Cart
 from shop.user.models import User
 from flask_login import login_user, current_user, logout_user, login_required
 import base64
@@ -105,6 +105,7 @@ def single_product(id):
 
 @app.route('/like/<int:id>', methods=['POST'])
 def like(id):
+    product = Product.query.get(id)
     existing_like = Like.query.filter_by(product_id=id, user_id=current_user.id).first()
     if existing_like:
         db.session.delete(existing_like)
@@ -114,5 +115,102 @@ def like(id):
         db.session.add(new_like)
         liked = True
     db.session.commit()
+    like_count = product.count_likes()
+    return jsonify({'liked': liked, 'like_count': like_count})
+
+
+@app.route('/liked_post/<int:id>')
+def like_user(id):
+    product = Product.query.get_or_404(id)
+    liked_users = []
+    for like in product.likes:
+        user = User.query.get(like.user_id)
+        liked_users.append(user.email)
+    return render_template("user/liked_user.html", product=product, liked_users=liked_users)
+
+
+
+@app.route('/add_to_cart/<int:product_id>')
+@login_required
+def add_to_cart(product_id):
+    cart_item = Cart.query.filter_by(user_id=current_user.id, product_id=product_id).first()
+    if cart_item:
+        cart_item.quantity += 1
+        flash('product has been updated!')
+    else:
+        cart_item = Cart(user_id=current_user.id, product_id=product_id)
+        flash('product has added to cart.')
+    db.session.add(cart_item)
+    db.session.commit()
+    return redirect(url_for('home'))
+
+
+@app.route('/view_cart')
+@login_required
+def view_cart():
+    cart = Cart.query.filter_by(user_id=current_user.id).all()
+    amount = 0
+    for item in cart:
+        amount += item.product.price * item.quantity
     
-    return jsonify({'liked': liked})
+    return render_template('cart.html', cart=cart, amount=amount, total=amount+120)
+
+
+@app.route('/pluscart')
+@login_required
+def plus_cart():
+    if request.method == 'GET':
+        cart_id = request.args.get('cart_id')
+        cart_item = Cart.query.get(cart_id)
+        cart_item.quantity = cart_item.quantity + 1
+        db.session.commit()
+
+        cart = Cart.query.filter_by(user_id=current_user.id).all()
+
+        amount = 0
+
+        for item in cart:
+            amount += item.product.price * item.quantity
+
+        data = {
+            'quantity': cart_item.quantity,
+            'amount': amount,
+            'total': amount + 200
+        }
+
+        return jsonify(data)
+    
+
+@app.route('/minuscart')
+@login_required
+def minus_cart():
+    if request.method == 'GET':
+        cart_id = request.args.get('cart_id')
+        cart_item = Cart.query.get(cart_id)
+        cart_item.quantity = cart_item.quantity - 1
+        db.session.commit()
+
+        cart = Cart.query.filter_by(user_id=current_user.id).all()
+
+        amount = 0
+
+        for item in cart:
+            amount += item.product.price * item.quantity
+
+        data = {
+            'quantity': cart_item.quantity,
+            'amount': amount,
+            'total': amount + 200
+        }
+
+        return jsonify(data)
+    
+
+@app.route('/removecart/<int:id>')
+@login_required
+def removecart(id):
+    remove = Cart.query.get_or_404(id)
+    db.session.delete(remove)
+    db.session.commit()
+    flash('Cart Deleted Successfully')
+    return redirect('/view_cart')

@@ -17,6 +17,8 @@ class Product(db.Model):
     user = db.relationship('User', backref=db.backref('products', lazy=True))
 
     likes = db.relationship('Like', backref='product', lazy=True)
+    def count_likes(self):
+        return len(self.likes)
 
 class Category(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -27,3 +29,14 @@ class Like(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     product_id = db.Column(db.Integer, db.ForeignKey('product.id'), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+
+
+
+class Cart(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    product_id = db.Column(db.Integer, db.ForeignKey('product.id'), nullable=False)
+    quantity = db.Column(db.Integer, nullable=False, default=1)
+
+    product = db.relationship("Product", backref="cart_items")
+

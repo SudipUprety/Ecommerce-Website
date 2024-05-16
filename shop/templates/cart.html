@@ -1,0 +1,135 @@
+
+{% extends 'base.html' %}
+
+{% block title %} Cart {% endblock %}
+
+
+{% block body %}
+<div class="container py-2">
+    <div class="row py-4 pb-0 pb-sm-4 align-items-center ">
+
+      <div class="col-sm-4 col-lg-3 text-center text-sm-start">
+        <div class="main-logo">
+          <a href="{{url_for('home')}}">
+            <img src="{{ url_for('static', filename='images/logo.png')}}" alt="logo" class="img-fluid">
+          </a>
+        </div>
+      </div>
+
+      <div class="col-sm-6 offset-sm-2 offset-md-0 col-lg-5 d-none d-lg-block">
+        <div class="search-bar border rounded-2 px-3 border-dark-subtle">
+          <form id="search-form" class="text-center d-flex align-items-center" action="{{url_for('search')}}" method="post">
+            <input type="text" class="form-control border-0 bg-transparent" name="search_query"
+              placeholder="Search for more than 10,000 products" />
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+              <path fill="currentColor"
+                d="M21.71 20.29L18 16.61A9 9 0 1 0 16.61 18l3.68 3.68a1 1 0 0 0 1.42 0a1 1 0 0 0 0-1.39ZM11 18a7 7 0 1 1 7-7a7 7 0 0 1-7 7Z" />
+            </svg>
+          </form>
+        </div>
+      </div>
+      {% if current_user.is_authenticated %}
+      <div
+        class="col-sm-8 col-lg-4 d-flex justify-content-end gap-5 align-items-center mt-4 mt-sm-0 justify-content-center justify-content-sm-end">
+        <div class="support-box text-end d-none d-xl-block">
+          <span class="fs-6 secondary-font text-muted">Logout:<a href="{{url_for('logout')}}" class="mx-3"><iconify-icon icon="majesticons:logout-line" width="20" height="20"></iconify-icon></a></span>
+          <h5 class="mb-0">{{current_user.email}}</h5>
+        </div>
+      </div>
+      {% else %}
+      <div
+        class="col-sm-8 col-lg-4 d-flex justify-content-end gap-5 align-items-center mt-4 mt-sm-0 justify-content-center justify-content-sm-end">
+        <div class="support-box text-end d-none d-xl-block">
+          <span class="fs-6 secondary-font text-muted">Login:<a href="{{url_for('login')}}" class="mx-3"><iconify-icon icon="mynaui:login" width="20" height="20"></iconify-icon></a></span>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="container-fluid">
+    <hr class="m-0">
+  </div>
+
+<div class="container my-5">
+    {% include 'flash_message.html'%}
+    <div class="row">
+        {% if cart %}
+        <div class="col-sm-8">
+            <div class="card">
+                <div class="card-body">
+
+                    {% for item in cart %}
+
+                    <div class="row">
+                        <div class="col-sm-3 text-center align-self-center">
+                            <img src="data:{{ item.mime_type }}; base64, {{ item.product.image_file }}" alt="thumbnail here" class="img-fluid img-thumbnail shadow-sm" height="150px" width="150px">
+                        </div>
+                        <div class="col-sm-9">
+                            <div>
+                                <h3>{{ item.product.name }}</h3>
+                                <div class="my-3">
+                                    <label for="quantity">Quantity</label>
+                                    <a class="minus-cart btn" pid="{{item.id}}"><i class="fas fa-minus-square fa-lg"></i></a>
+                                    <span id="quantity">{{ item.quantity }}</span>
+                                    <a class="plus-cart btn " pid="{{ item.id }}"><i class="fas fa-plus-square fa-lg"></i></a>
+
+                                </div>
+
+                                <div class="d-flex justify-content-between">
+                                    <p class="mb-0"><span><strong>$ {{ item.product.price }}</strong></span></p>
+                                    <a href="/removecart/{{ item.id }}" class="btn btn-sm btn-secondary mr-3 ">Remove</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <hr>
+
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-4">
+            <div class="card">
+                <div class="card-body">
+                    <h3>Cart Summary </h3>
+                    <hr color="black">
+                    <ul class="list-group">
+                        {% for item in cart %}
+
+                        <li class="list-group-item d-flex justify-content-between align-items-center border-0 px-0 pb-0"><strong>{{item.product.name}}</strong><span id="amount">{{item.product.price}} X <span id="quantity{{item.id}}">{{ item.quantity}}</span></span></li>
+
+                        {% endfor %}
+
+
+                        <li class="list-group-item d-flex justify-content-between align-items-center border-0 px-0 pb-0"><strong>Amount</strong> <span>$ <span id="amount_tt">{{ amount }}</span></span></li>
+
+                        <li class="list-group-item d-flex justify-content-between align-items-center border-0 px-0 mb-3">
+                            <div style="margin-top: 15px;">
+                                <strong>Total</strong><small>(Including Shipping)</small>
+                            </div>
+                            <span><strong>$ </strong><span id="totalamount"><strong>{{ total }}</strong></span></span>
+    
+                        </li>
+
+                    </ul>
+
+                    <div class="d-grid"><a href="#" class="btn btn-primary">Place Order</a></div>
+
+                </div>
+            </div>
+        </div>
+
+
+
+        {% else %}
+
+        <h1 class="text-center mb-5" style="color: white;">Your Cart is Empty</h1>
+
+        {% endif %}
+    </div>
+</div>
+
+
+{% endblock %}

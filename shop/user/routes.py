@@ -1,7 +1,7 @@
 from flask import render_template, url_for, request, redirect, flash, session
 from shop import app, bcrypt, db, mail
 from .models import User
-from shop.products.models import Product, Category
+from shop.products.models import Product, Category, Cart
 from flask_login import login_user, current_user, logout_user
 import random
 from flask_mail import Message
@@ -13,6 +13,9 @@ from sqlalchemy import or_
 def home():
     categories = Category.query.all()
     all_products = Product.query.all()
+    cart=[]
+    if current_user.is_authenticated:
+        cart = Cart.query.filter_by(user_id=current_user.id).all()
     if request.method == 'POST':
         email = request.form['email']
         password = request.form['password']
@@ -28,7 +31,7 @@ def home():
                 return redirect(url_for('login'))
             flash('Please enter the same password')
         flash('Email already exist.')
-    return render_template('home.html', all_products=all_products, categories=categories)
+    return render_template('home.html', all_products=all_products, categories=categories, cart=cart)
 
 
 @app.route("/login", methods=["GET","POST"])
