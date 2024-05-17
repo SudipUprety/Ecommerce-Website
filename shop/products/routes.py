@@ -33,7 +33,7 @@ def addproduct():
         pic = request.files['pic']
         img_data = pic.read()
         encoded_img = base64.b64encode(img_data).decode('utf-8')
-        my_data = Product(name=name, price=price,image_file=encoded_img, description=description, tag=tag, category_id=category, user_id=current_user.id)
+        my_data = Product(name=name, price=price,image_file=encoded_img, description=description, tag=tag, category_id=category)
         db.session.add(my_data)
         db.session.commit()
         flash('Product added successfully')

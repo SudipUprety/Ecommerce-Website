@@ -13,9 +13,6 @@ class Product(db.Model):
     category_id = db.Column(db.Integer, db.ForeignKey('category.id'), nullable=False)
     category = db.relationship('Category', backref=db.backref('products', lazy=True))
 
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    user = db.relationship('User', backref=db.backref('products', lazy=True))
-
     likes = db.relationship('Like', backref='product', lazy=True)
     def count_likes(self):
         return len(self.likes)

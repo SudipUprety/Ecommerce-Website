@@ -2,8 +2,8 @@ from flask import render_template, url_for, request, redirect, flash, session
 from shop import app, bcrypt, db, mail
 from .models import User
 from shop.products.models import Product, Category, Cart
-from flask_login import login_user, current_user, logout_user
-import random
+from flask_login import login_user, current_user, logout_user, login_required
+import random, base64
 from flask_mail import Message
 from datetime import datetime, timezone, timedelta
 from sqlalchemy import or_
@@ -17,6 +17,7 @@ def home():
     if current_user.is_authenticated:
         cart = Cart.query.filter_by(user_id=current_user.id).all()
     if request.method == 'POST':
+        username = request.form['username']
         email = request.form['email']
         password = request.form['password']
         re_password = request.form['repassword']
@@ -24,7 +25,7 @@ def home():
         if not existing_user:    
             if password==re_password:
                 hashed_password = bcrypt.generate_password_hash(password)
-                new_user = User(email=email, password=hashed_password)
+                new_user = User(username=username, email=email, password=hashed_password)
                 db.session.add(new_user)
                 db.session.commit()
                 flash('Your account is register succesfully')
@@ -57,6 +58,22 @@ def login():
 def logout():
     logout_user()
     return redirect(url_for('login'))
+
+
+@app.route('/profile',methods=["GET", "POST"])
+@login_required
+def profile():
+    if request.method == 'POST':
+        current_user.username = request.form['username']
+        pic = request.files['pic']   
+        img_data = pic.read()
+        encoded_img = base64.b64encode(img_data).decode('utf-8')
+        current_user.image_file = encoded_img
+        current_user.email = request.form["email"]
+        db.session.commit()
+        flash('Your account has been updated!')
+        return redirect(url_for('profile'))
+    return render_template('user/profile.html')
 
 
 @app.route('/forgot_password', methods=["GET","POST"])
@@ -120,6 +137,30 @@ def update_password():
         else:
             flash("Password didn't match! Please enter the same password")
     return render_template('user/update_password.html')
+
+
+@app.route('/changepassword', methods=["GET","POST"])
+@login_required
+def changepassword():
+    if request.method == 'POST':
+        old_password = request.form['oldpassword']
+        new_password = request.form['newpassword']
+        re_password = request.form['repassword']
+        if bcrypt.check_password_hash(current_user.password,old_password):
+                if old_password != new_password:
+                    if new_password==re_password:
+                        hashed_password = bcrypt.generate_password_hash(new_password)
+                        current_user.password=hashed_password
+                        db.session.commit()
+                        flash('Password changed successfully')
+                    else:
+                        flash('Password did not match')
+                else:
+                    flash('The password cannot be same')
+        else:
+            flash('wrong old password')
+        return redirect(url_for('changepassword'))
+    return render_template('user/changepassword.html')
 
 
 @app.route('/search', methods=['POST'])

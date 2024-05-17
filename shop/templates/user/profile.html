@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+
+<title>{% block title %}Account{% endblock title %}</title>
+
+
+<body>
+    {%block body %}
+    <div class="container py-2">
+        <div class="row py-4 pb-0 pb-sm-4 align-items-center">
+            <div class="col-sm-4 col-lg-3 text-center text-sm-start">
+                <div class="main-logo">
+                  <a href="{{url_for('home')}}">
+                    <img src="{{ url_for('static', filename='images/logo.png')}}" alt="logo" class="img-fluid">
+                  </a>
+                </div>
+              </div>
+          
+          <div class="col-sm-8 col-lg-9 d-flex justify-content-between justify-content-sm-end align-items-center">
+            {% if current_user.is_authenticated %}
+            <div class="support-box text-end d-none d-xl-block">
+                <span class="fs-6 secondary-font text-muted">Logout:<a href="{{url_for('logout')}}" class="mx-3"><iconify-icon icon="majesticons:logout-line" width="20" height="20"></iconify-icon></a></span>
+                <h5 class="mb-0">{{current_user.email}}</h5>
+              </div>
+              {% else %}
+              <div class="support-box text-end d-none d-xl-block">
+                <span class="fs-6 secondary-font text-muted">Login:<a href="{{url_for('login')}}" class="mx-3"><iconify-icon icon="mynaui:login" width="20" height="20"></iconify-icon></a></span>
+              </div>
+              {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <div class="container-fluid">
+        <hr class="m-0">
+      </div>
+      {% include 'flash_message.html'%}
+    <div class="container mt-3" style="display: flex; justify-content: center;">
+          <div class="card-group">
+            <div class="card">
+              <div class="imgcontainer" style="display: flex; justify-content: center;">
+                {% if current_user.image_file == 'default.jpg' %}
+                  <img src="{{url_for('static', filename='default.jpg')}}" style="width: 40%;">
+                {% else %}
+                  <img src="data:{{ current_user.mime_type }};base64,{{ current_user.image_file }}" class="card-img-top" alt="Please upload your image" style="width: 20%; display: flex; justify-content: center;">
+                {% endif %}
+              </div>  
+              <div class="container-sm" style="display: flex; justify-content: center;">
+                <p class="card-text"><b>Username: {{ current_user.username}}</b></p>
+              </div>
+              <div class="container-sm my-3" style="display: flex; justify-content: center;">
+              <a href="{{(url_for('changepassword'))}}">Change Password</a>
+            </div>
+              <div class="container" >
+                <u><h4>Update Profile</h4></u>
+                <form method="post" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label for="text" class="form-label">Username</label>
+                        <input type="text" class="form-control" name="username" value="{{current_user.username}}" placeholder="Enter your username" required>
+                      </div>
+                  <div class="mb-3">
+                    <label for="email" class="form-label">Email address</label>
+                    <input type="email" class="form-control" name="email" value="{{current_user.email}}" placeholder="Enter your email" required>
+                  </div>
+                  <div class="mb-3">
+                    <input type="file" class="form-control" name="pic">
+                  </div>
+                  <div  style="display: flex; justify-content: center;">
+                  <button type="submit" class="btn btn-secondary">Update</button>
+                </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      
+      
+    {% endblock body %}  
+</body>
