@@ -1,9 +1,17 @@
-from flask import render_template, url_for, request, redirect, flash, session, jsonify, abort
-from shop import app, bcrypt, db, mail, admin_required
-from .models import Product, Category, Like, Cart
-from shop.user.models import User
-from flask_login import login_user, current_user, logout_user, login_required
+from flask import Flask, url_for, redirect, render_template, request, flash, session, jsonify, send_from_directory,abort, current_app
+from flask_login import login_required, current_user
+from datetime import datetime, timedelta, timezone
 import base64
+from shop import app,db, admin_required
+from .models import Product, Category
+from shop.products.models import Like, Cart,Order
+from shop.user.models import User
+from fpdf import FPDF
+import os
+import string
+from sqlalchemy import desc
+import random
+
 
 
 @app.route('/add_category', methods=["GET","POST"])
@@ -55,7 +63,7 @@ def update_product(id):
         pic = request.files['pic']   
         img_data = pic.read()
         encoded_img = base64.b64encode(img_data).decode('utf-8')
-        product_to_update.imgage_file = encoded_img
+        product_to_update.image_file = encoded_img
         db.session.commit()
         flash('Product Updated Successfully')
         return redirect('/admin_home')
@@ -91,10 +99,16 @@ def update_category(id):
 @admin_required
 def delete_category(id):
     category_to_delete = Category.query.get_or_404(id)
+    if category_to_delete:
+        products = Product.query.filter_by(category_id=id).all()
+        for product in products:
+            product.category_id = None  
+            db.session.commit() 
     db.session.delete(category_to_delete)
     db.session.commit()
     flash('Category Deleted Successfully')
     return redirect('/view_category')
+
 
 
 @app.route('/single_product/<int:id>')
@@ -214,3 +228,119 @@ def removecart(id):
     db.session.commit()
     flash('Cart Deleted Successfully')
     return redirect('/view_cart')
+
+
+@app.route('/place-order')
+@login_required
+def place_order():
+    cart_items = Cart.query.filter_by(user_id=current_user.id).all()
+    orders = []
+    for item in cart_items:
+        new_order = Order(
+            quantity=item.quantity,
+            price=float(item.product.price) * item.quantity,
+            user_id=current_user.id,
+            product_id=item.product.id
+        )
+        new_order.generate_invoice()
+        db.session.add(new_order)
+        orders.append(new_order)
+        db.session.delete(item)  
+    db.session.commit()
+
+    pdf_filename = generate_invoice_pdf(orders)
+    flash('Order placed successfully. Status is Pending.')
+    return redirect(url_for('show_invoice', pdf_filename=pdf_filename))
+
+
+
+def generate_invoice_number(length=8):
+    characters = string.ascii_uppercase + string.digits
+    return ''.join(random.choice(characters) for _ in range(length))
+
+
+def generate_invoice_pdf(orders):
+    pdf = FPDF()
+    pdf.add_page()
+    pdf.set_font("Arial", size=12)
+
+    user = User.query.get(orders[0].user_id)
+    invoice_number = generate_invoice_number()
+
+    
+    pdf.cell(200, 10, txt=f"Invoice Number: #{invoice_number}", ln=True)
+    pdf.cell(200, 10, txt=f"Customer Name: {user.username}", ln=True)
+    pdf.cell(200, 10, txt=f"Customer Email: {user.email}", ln=True)
+    pdf.cell(200, 10, txt=" ", ln=True)
+
+    
+    pdf.set_font("Arial", 'B', size=12)
+    pdf.cell(40, 10, txt="S.N", border=1, align="C")
+    pdf.cell(60, 10, txt="Product", border=1, align="C")
+    pdf.cell(20, 10, txt="Quantity", border=1, align="C")
+    pdf.cell(40, 10, txt="Price per item", border=1, align="C")
+    pdf.cell(40, 10, txt="Total Price", border=1, align="C")
+    pdf.ln()
+
+    pdf.set_font("Arial", size=12)
+    grand_total = 0
+    counter = 1
+
+    for order in orders:
+        product = Product.query.get(order.product_id)
+        total_price = order.price
+        grand_total += total_price
+
+        pdf.cell(40, 10, txt=f"{counter}", border=1, align="C")
+        pdf.cell(60, 10, txt=f"{product.name}", border=1, align="C")
+        pdf.cell(20, 10, txt=f"{order.quantity}", border=1, align="C")
+        pdf.cell(40, 10, txt=f"{order.price / order.quantity:.2f}", border=1, align="C")
+        pdf.cell(40, 10, txt=f"{total_price:.2f}", border=1, align="C")
+        pdf.ln()
+
+        counter += 1
+
+    # Grand total
+    pdf.cell(160, 10, txt="Grand Total", border=1, align="C")
+    pdf.cell(40, 10, txt=f"{grand_total:.2f}", border=1, align="C")
+    pdf.ln()
+
+    invoice_dir = os.path.join(current_app.root_path, 'static', 'invoices')
+    if not os.path.exists(invoice_dir):
+        os.makedirs(invoice_dir)
+
+    pdf_filename = f'invoice_{user.id}_{invoice_number}.pdf' 
+    pdf_path = os.path.join(invoice_dir, pdf_filename)
+    pdf.output(pdf_path)
+
+    return pdf_filename
+
+
+
+@app.route('/orders')
+@login_required
+def order():
+    orders = Order.query.filter_by(user_id=current_user.id).order_by(desc(Order.id)).all()
+    return render_template('products/orders.html', orders=orders)
+
+
+
+@app.route('/show-invoice')
+@login_required
+def show_invoice():
+    pdf_filename = request.args.get('pdf_filename')
+    if not pdf_filename:
+        flash('Invoice not found.', 'danger')
+        return redirect(url_for('show_cart'))
+    return render_template('products/show_invoice.html', pdf_filename=pdf_filename)
+
+
+
+@app.route('/invoices/<filename>')
+@login_required
+def serve_invoice(filename):
+    try:
+        return send_from_directory(os.path.join(current_app.root_path, 'static', 'invoices'), filename)
+    except FileNotFoundError:
+        abort(404)
+

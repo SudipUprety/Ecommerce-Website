@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+
+{% block title %} Update Order {% endblock %}
+
+{% block body %}
+<div class="container py-2">
+    <div class="row py-4 pb-0 pb-sm-4 align-items-center ">
+  
+      <div class="col-sm-4 col-lg-3 text-center text-sm-start">
+        <div class="main-logo">
+          <a href="{{url_for('admin_home')}}">
+            <img src="{{url_for('static', filename='images/logo.png')}}" alt="logo" class="img-fluid">
+          </a>
+        
+        </div>
+      
+      </div>
+    </div>
+      
+</div>
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card mt-5">
+                <div class="card-header">
+                    <h5 class="card-title" style="display: flex; justify-content: center;">Update Order</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" enctype='multipart/form-data'>
+                        <div class="form-group">
+                            <label for="order_status">Order Status</label>
+                            <select id="order_status" name="order_status" class="form-control">
+                                <option value="Pending">Pending</option>
+                                <option value="Accepted">Accepted</option>
+                                <option value="Out for delivery">Out for delivery</option>
+                                <option value="Delivered">Delivered</option>
+                                <option value="Canceled">Canceled</option>
+                            </select>
+                        </div>
+                        <br>
+                        <button type="submit" class="btn btn-primary">Update Status</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

@@ -674,3 +674,28 @@ Single Product section style start
   color: var(--light-color);
   background-color: var(--accent-color);
 }
+
+
+
+.progress-bar-custom-cancel {
+  background-color: #ff0000; 
+}
+
+.progress-bar-custom-out {
+  background-color: #bc73e3; 
+}
+
+
+.progress-bar-custom-accepted {
+  background-color: #3f45f0; 
+}
+
+
+.progress-bar-custom-delivered {
+  background-color: #09922e; 
+}
+
+
+.progress-bar-custom-pending {
+  background-color: #e1ff20; 
+}

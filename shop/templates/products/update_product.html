@@ -27,12 +27,12 @@
               <div class="mb-3">
                 <label for="category">Category</label>
                 <select name="category" id="category" class="form-control form-control-lg" required>
-                  <option value=""> Select a category</option>
-                  {% for category in categories %}
-                  <option value="{{ category.id }}">{{ category.name }}</option>
-                  {% endfor %}
+                    <option value="">Select a category</option>
+                    {% for category in categories %}
+                    <option value="{{ category.id }}" {% if category.id == product_to_update.category_id %}selected{% endif %}>{{ category.name }}</option>
+                    {% endfor %}
                 </select>
-              </div>
+            </div>
               <div class="mb-3">
                 <label for="Desc" class="form-label">Description</label>
                 <textarea class="form-control form-control-lg" placeholder="Description about product" name="desc" required >{{product_to_update.description}}</textarea>
@@ -44,6 +44,10 @@
               <div class="mb-3">
                 <input type="file" class="form-control" name="pic">
               </div>
+              <div class="mb-3">
+                <label for="pic" class="form-label">Original Image Name</label>
+                <input type="text" class="form-control form-control-lg" name="pic" value="{{ product_to_update.image_file }}" readonly>
+            </div>
             <div class="d-grid gap-2">
               <button type="submit" class="btn btn-dark btn-lg rounded-1">Update Product</button>
             </div>
