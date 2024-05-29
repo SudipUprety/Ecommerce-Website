@@ -699,3 +699,14 @@ Single Product section style start
 .progress-bar-custom-pending {
   background-color: #e1ff20; 
 }
+
+
+.text-primary {
+  color: gold; /* or your desired color for full stars */
+}
+
+.text-muted {
+  color: gray; /* or your desired color for empty stars */
+}
+
+

@@ -3,13 +3,13 @@ from flask_login import login_required, current_user
 from datetime import datetime, timedelta, timezone
 import base64
 from shop import app,db, admin_required
-from .models import Product, Category
+from .models import Product, Category, Rating
 from shop.products.models import Like, Cart,Order
 from shop.user.models import User
 from fpdf import FPDF
 import os
 import string
-from sqlalchemy import desc
+from sqlalchemy import desc, func
 import random
 
 
@@ -110,6 +110,32 @@ def delete_category(id):
     return redirect('/view_category')
 
 
+@app.route('/rate_product/<int:product_id>/<int:rating_value>', methods=['POST'])
+@login_required
+def rate_product(product_id, rating_value):
+    product = Product.query.get_or_404(product_id)
+    purchase = Order.query.filter_by(user_id=current_user.id, product_id=product_id).first()
+
+    if not purchase:
+        return jsonify({'success': False, 'message': 'You can only rate products you have purchased.'}), 403
+
+    if rating_value < 1 or rating_value > 5:
+        return jsonify({'success': False, 'message': 'Invalid rating value.'}), 400
+
+    rating = Rating.query.filter_by(user_id=current_user.id, product_id=product_id).first()
+    if rating:
+        rating.value = rating_value
+    else:
+        rating = Rating(value=rating_value, user_id=current_user.id, product_id=product_id)
+        db.session.add(rating)
+
+    db.session.commit()
+    new_rating = product.average_rating()
+
+    return jsonify({'success': True, 'new_rating': new_rating}), 200
+
+
+
 
 @app.route('/single_product/<int:id>')
 def single_product(id):
@@ -144,19 +170,37 @@ def like_user(id):
 
 
 
-@app.route('/add_to_cart/<int:product_id>')
+@app.route('/add-to-cart/<int:product_id>', methods=['POST' , 'GET'])
 @login_required
 def add_to_cart(product_id):
-    cart_item = Cart.query.filter_by(user_id=current_user.id, product_id=product_id).first()
-    if cart_item:
-        cart_item.quantity += 1
-        flash('product has been updated!')
+    item_to_add = Product.query.get_or_404(product_id)  
+    item_exists = Cart.query.filter_by(product_id=product_id, user_id=current_user.id).first()
+    
+    if item_exists:
+        try:
+            item_exists.quantity += 1
+            db.session.commit()
+            flash(f'Quantity of {item_exists.product.name} has been updated', 'success')
+        except Exception as e:
+            db.session.rollback() 
+            print('Quantity not updated:', e)
+            flash(f'Quantity of {item_exists.product.name} could not be updated', 'error')
     else:
-        cart_item = Cart(user_id=current_user.id, product_id=product_id)
-        flash('product has added to cart.')
-    db.session.add(cart_item)
-    db.session.commit()
-    return redirect(url_for('home'))
+        new_cart_item = Cart()
+        new_cart_item.quantity = 1
+        new_cart_item.product_id = item_to_add.id
+        new_cart_item.user_id = current_user.id
+
+        try:
+            db.session.add(new_cart_item)
+            db.session.commit()
+            flash(f'{new_cart_item.product.name} added to cart', 'success')
+        except Exception as e:
+            db.session.rollback()
+            print('Item not added to cart:', e)
+            flash(f'{new_cart_item.product.name} could not be added to cart', 'error')
+
+    return redirect(request.referrer)
 
 
 @app.route('/view_cart')
@@ -324,6 +368,21 @@ def order():
     return render_template('products/orders.html', orders=orders)
 
 
+@app.route('/cancel_order/<int:order_id>', methods=['POST'])
+@login_required
+def cancel_order(order_id):
+    order = Order.query.get_or_404(order_id)
+
+    if order.user_id == current_user.id and order.status == 'Pending':
+        order.status = 'Canceled'
+        db.session.commit()
+        flash('Order successfully cancelled.', 'success')  
+    else:
+        flash('Failed to cancel order. Either the order does not exist or it is not pending.')  
+    
+    return redirect(url_for('order'))
+
+
 
 @app.route('/show-invoice')
 @login_required
@@ -344,3 +403,44 @@ def serve_invoice(filename):
     except FileNotFoundError:
         abort(404)
 
+
+@app.route('/purchased-products')
+@login_required
+def purchased_products():
+    all_orders = Order.query.filter_by(user_id=current_user.id, status='Delivered').all()
+    
+    unique_products = {}
+    for order in all_orders:
+        if order.product_id not in unique_products:
+            unique_products[order.product_id] = order
+    
+    unique_orders = list(unique_products.values())
+
+    return render_template('user/purchased_products.html', orders=unique_orders)
+
+
+@app.route('/filter_product', methods=['GET', 'POST'])
+def filterproduct():
+    categories = Category.query.all()
+    filtered_products = Product.query
+
+    if request.method == 'POST':
+        category_id = request.form.get('category')
+        min_price = request.form.get('min_price')
+        max_price = request.form.get('max_price')
+        min_rating = request.form.get('min_rating')
+
+        if category_id:
+            filtered_products = filtered_products.filter(Product.category_id == category_id)
+        
+        if min_price:
+            filtered_products = filtered_products.filter(Product.price >= float(min_price))
+        if max_price:
+            filtered_products = filtered_products.filter(Product.price <= float(max_price))
+        
+        if min_rating:
+            filtered_products = filtered_products.outerjoin(Rating).group_by(Product.id).having(func.avg(Rating.value) >= float(min_rating))
+
+    filtered_products = filtered_products.all()
+
+    return render_template('products/filter_product.html', categories=categories, all_products=filtered_products)

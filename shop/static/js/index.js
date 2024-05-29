@@ -72,3 +72,62 @@ $('.minus-cart').click(function(){
   });
 });
 
+
+
+
+
+document.addEventListener('DOMContentLoaded', (event) => {
+  document.querySelectorAll('[id^="rating-stars-"]').forEach(starContainer => {
+      const productId = starContainer.id.split('-')[2];
+      const ratingValue = parseFloat(document.getElementById(`rating-value-${productId}`).innerText);
+      updateRatingStars(productId, ratingValue);
+  });
+});
+
+function rateProduct(productId, ratingValue) {
+  fetch(`/rate_product/${productId}/${ratingValue}`, {
+      method: 'POST',
+      headers: {
+          'Content-Type': 'application/json',
+      }
+  })
+  .then(response => response.json())
+  .then(data => {
+      if (data.success) {
+          const newRating = parseFloat(data.new_rating).toFixed(1); 
+          document.getElementById(`user-rating-value-${productId}`).innerText = `(${ratingValue})`;
+          document.getElementById(`rating-value-${productId}`).innerText = newRating;
+          updateRatingStars(productId, newRating);
+      } else {
+          alert(data.message);
+      }
+  })
+  .catch(error => console.error('Error:', error));
+}
+
+function updateRatingStars(productId, newRating) {
+  const stars = document.querySelectorAll(`#rating-stars-${productId} .star`);
+  const wholeStars = Math.floor(newRating);
+  const fraction = newRating - wholeStars;
+  const hasHalfStar = fraction >= 0.25 && fraction < 0.75;
+
+  stars.forEach((star, index) => {
+      if (index < wholeStars) {
+          star.innerHTML = '<i class="fa fa-star text-primary"></i>';
+      } else if (index === wholeStars && hasHalfStar) {
+          star.innerHTML = '<i class="fa fa-star-half-alt text-primary"></i>';
+      } else if (index === wholeStars && !hasHalfStar && fraction >= 0.75) {
+          star.innerHTML = '<i class="fa fa-star text-primary"></i>';
+      } else {
+          star.innerHTML = '<i class="fa fa-star text-muted"></i>';
+      }
+  });
+}
+
+
+
+
+
+
+
+

@@ -68,7 +68,7 @@ def delete_user(id):
 @app.route('/view-orders')
 @admin_required
 def view_orders():
-    orders = Order.query.order_by(desc(Order.id))
+    orders = Order.query.filter(Order.status != 'Canceled').order_by(desc(Order.id)).all()
     return render_template('admin/orders.html', orders=orders)
 
 
