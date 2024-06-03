@@ -51,6 +51,7 @@ class Order(db.Model):
     quantity = db.Column(db.Integer, nullable=False)
     price = db.Column(db.Float, nullable=False)
     status = db.Column(db.String(100), nullable=False, default="Pending")
+    payment_status = db.Column(db.String(100), nullable=False, default="Unpaid")
     invoice = db.Column(db.String(1000), nullable=True)  
 
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
@@ -59,17 +60,6 @@ class Order(db.Model):
     user = db.relationship('User', backref='orders')
     product = db.relationship('Product', backref='ordered_in_orders')
 
-    def generate_invoice(self):
-        user = User.query.get(self.user_id)
-        product = Product.query.get(self.product_id)
-        self.invoice = f"""
-        Order ID: {self.id}
-        User: {user.username}
-        Product: {product.name}
-        Quantity: {self.quantity}
-        Price per item: {self.price / self.quantity:.2f}
-        Total Price: {self.price:.2f}
-        Status: {self.status}"""
 
 class Rating(db.Model):
     id = db.Column(db.Integer, primary_key=True)

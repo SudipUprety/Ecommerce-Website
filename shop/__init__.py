@@ -1,4 +1,6 @@
 from flask import Flask, flash, redirect, url_for
+from flask import request, jsonify
+import requests, json
 from functools import wraps
 from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
@@ -46,3 +48,11 @@ def admin_required(func):
 from shop.user import routes
 from shop.products import routes
 from shop.admin import routes
+
+
+
+      
+        
+
+
+    

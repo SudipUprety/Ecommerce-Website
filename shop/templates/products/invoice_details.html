@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+{% block title %}Order List{% endblock title %}
+{% block body %}
+<body>
+    <div class="container py-2">
+        <div class="row py-4 pb-0 pb-sm-4 align-items-center">
+            <div class="col-sm-4 col-lg-3 text-center text-sm-start">
+                <div class="main-logo">
+                    <a href="{{url_for('home')}}">
+                        <img src="{{ url_for('static', filename='images/logo.png')}}" alt="logo" class="img-fluid">
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="container mt-4">
+        {% include 'flash_message.html' %}
+        <div class="row">
+            <div class="col-md-12">
+                <h2>Invoice Details</h2>
+                <p>Invoice Number: {{ invoice_number }}</p>
+                <p>Customer Name: {{ user.username }}</p>
+                <p>Customer Email: {{ user.email }}</p>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>S.N.</th>
+                            <th>Product</th>
+                            <th>Quantity</th>
+                            <th>Price per item</th>
+                            <th>Payment Status</th>
+                            <th>Total Price</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for order in orders %}
+                        <tr>
+                            <td>{{ loop.index }}</td>
+                            <td>{{ order.product.name }}</td>
+                            <td>{{ order.quantity }}</td>
+                            <td>${{ order.price / order.quantity }}</td>
+                            <td>{{ order.payment_status }}</td>
+                            <td>${{ order.price }}</td>
+                        </tr>
+                        {% endfor %}
+                        <tr>
+                            <td colspan="5">Grand Total</td>
+                            <td>${{ orders | map(attribute='price') | sum }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <table class="table table-sm">
+                    <tr> 
+                        <td colspan="5"> 
+                            <a target="_blank" href="{{ url_for('get_pdf', invoice_number=invoice_number) }}" class="btn btn-info">Get PDF</a>
+                        </td>
+                    </tr>
+                </table>
+                <form id="payment-form" method="post" action="{{ url_for('initkhalti') }}">
+                    <input type="hidden" name="invoice_number" value="{{ invoice_number }}">
+                    <input type="hidden" name="amount" value="{{ orders | map(attribute='price') | sum }}">
+                    <input type="hidden" name="return_url" value="{{ url_for('verify', _external=True) }}">
+                    <button type="submit" id="payment-button">Pay With Khalti</button>
+                </form>                
+            </div>
+        </div>
+    </div>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script>
+       $(document).ready(function() {
+    $('#payment-button').on('click', function(e) {
+        e.preventDefault();
+        var formData = {
+            invoice_number: $('input[name="invoice_number"]').val(),
+            amount: $('input[name="amount"]').val(),
+            return_url: $('input[name="return_url"]').val()
+        };
+        $.ajax({
+            url: '/initkhalti',
+            type: 'POST',
+            data: formData,
+            success: function(response) {
+                if (response.payment_url) {
+                    window.location.href = response.payment_url;
+                } else {
+                    alert('Failed to initiate payment. Please try again.');
+                }
+            },
+            error: function() {
+                alert('An error occurred. Please try again.');
+            }
+        });
+    });
+});
+
+    </script>
+</body>
+{% endblock %}

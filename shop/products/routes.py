@@ -1,4 +1,4 @@
-from flask import Flask, url_for, redirect, render_template, request, flash, session, jsonify, send_from_directory,abort, current_app
+from flask import Flask, url_for, redirect, render_template, request, flash, session, jsonify, send_from_directory,abort, current_app,  make_response
 from flask_login import login_required, current_user
 from datetime import datetime, timedelta, timezone
 import base64
@@ -6,11 +6,11 @@ from shop import app,db, admin_required
 from .models import Product, Category, Rating
 from shop.products.models import Like, Cart,Order
 from shop.user.models import User
-from fpdf import FPDF
+import pdfkit
 import os
 import string
 from sqlalchemy import desc, func
-import random
+import random, requests 
 
 
 
@@ -274,136 +274,6 @@ def removecart(id):
     return redirect('/view_cart')
 
 
-@app.route('/place-order')
-@login_required
-def place_order():
-    cart_items = Cart.query.filter_by(user_id=current_user.id).all()
-    orders = []
-    for item in cart_items:
-        new_order = Order(
-            quantity=item.quantity,
-            price=float(item.product.price) * item.quantity,
-            user_id=current_user.id,
-            product_id=item.product.id
-        )
-        new_order.generate_invoice()
-        db.session.add(new_order)
-        orders.append(new_order)
-        db.session.delete(item)  
-    db.session.commit()
-
-    pdf_filename = generate_invoice_pdf(orders)
-    flash('Order placed successfully. Status is Pending.')
-    return redirect(url_for('show_invoice', pdf_filename=pdf_filename))
-
-
-
-def generate_invoice_number(length=8):
-    characters = string.ascii_uppercase + string.digits
-    return ''.join(random.choice(characters) for _ in range(length))
-
-
-def generate_invoice_pdf(orders):
-    pdf = FPDF()
-    pdf.add_page()
-    pdf.set_font("Arial", size=12)
-
-    user = User.query.get(orders[0].user_id)
-    invoice_number = generate_invoice_number()
-
-    
-    pdf.cell(200, 10, txt=f"Invoice Number: #{invoice_number}", ln=True)
-    pdf.cell(200, 10, txt=f"Customer Name: {user.username}", ln=True)
-    pdf.cell(200, 10, txt=f"Customer Email: {user.email}", ln=True)
-    pdf.cell(200, 10, txt=" ", ln=True)
-
-    
-    pdf.set_font("Arial", 'B', size=12)
-    pdf.cell(40, 10, txt="S.N", border=1, align="C")
-    pdf.cell(60, 10, txt="Product", border=1, align="C")
-    pdf.cell(20, 10, txt="Quantity", border=1, align="C")
-    pdf.cell(40, 10, txt="Price per item", border=1, align="C")
-    pdf.cell(40, 10, txt="Total Price", border=1, align="C")
-    pdf.ln()
-
-    pdf.set_font("Arial", size=12)
-    grand_total = 0
-    counter = 1
-
-    for order in orders:
-        product = Product.query.get(order.product_id)
-        total_price = order.price
-        grand_total += total_price
-
-        pdf.cell(40, 10, txt=f"{counter}", border=1, align="C")
-        pdf.cell(60, 10, txt=f"{product.name}", border=1, align="C")
-        pdf.cell(20, 10, txt=f"{order.quantity}", border=1, align="C")
-        pdf.cell(40, 10, txt=f"{order.price / order.quantity:.2f}", border=1, align="C")
-        pdf.cell(40, 10, txt=f"{total_price:.2f}", border=1, align="C")
-        pdf.ln()
-
-        counter += 1
-
-    # Grand total
-    pdf.cell(160, 10, txt="Grand Total", border=1, align="C")
-    pdf.cell(40, 10, txt=f"{grand_total:.2f}", border=1, align="C")
-    pdf.ln()
-
-    invoice_dir = os.path.join(current_app.root_path, 'static', 'invoices')
-    if not os.path.exists(invoice_dir):
-        os.makedirs(invoice_dir)
-
-    pdf_filename = f'invoice_{user.id}_{invoice_number}.pdf' 
-    pdf_path = os.path.join(invoice_dir, pdf_filename)
-    pdf.output(pdf_path)
-
-    return pdf_filename
-
-
-
-@app.route('/orders')
-@login_required
-def order():
-    orders = Order.query.filter_by(user_id=current_user.id).order_by(desc(Order.id)).all()
-    return render_template('products/orders.html', orders=orders)
-
-
-@app.route('/cancel_order/<int:order_id>', methods=['POST'])
-@login_required
-def cancel_order(order_id):
-    order = Order.query.get_or_404(order_id)
-
-    if order.user_id == current_user.id and order.status == 'Pending':
-        order.status = 'Canceled'
-        db.session.commit()
-        flash('Order successfully cancelled.', 'success')  
-    else:
-        flash('Failed to cancel order. Either the order does not exist or it is not pending.')  
-    
-    return redirect(url_for('order'))
-
-
-
-@app.route('/show-invoice')
-@login_required
-def show_invoice():
-    pdf_filename = request.args.get('pdf_filename')
-    if not pdf_filename:
-        flash('Invoice not found.', 'danger')
-        return redirect(url_for('show_cart'))
-    return render_template('products/show_invoice.html', pdf_filename=pdf_filename)
-
-
-
-@app.route('/invoices/<filename>')
-@login_required
-def serve_invoice(filename):
-    try:
-        return send_from_directory(os.path.join(current_app.root_path, 'static', 'invoices'), filename)
-    except FileNotFoundError:
-        abort(404)
-
-
 @app.route('/purchased-products')
 @login_required
 def purchased_products():
@@ -417,6 +287,7 @@ def purchased_products():
     unique_orders = list(unique_products.values())
 
     return render_template('user/purchased_products.html', orders=unique_orders)
+
 
 
 @app.route('/filter_product', methods=['GET', 'POST'])
@@ -444,3 +315,171 @@ def filterproduct():
     filtered_products = filtered_products.all()
 
     return render_template('products/filter_product.html', categories=categories, all_products=filtered_products)
+
+
+
+@app.route('/orders')
+@login_required
+def order():
+    orders = Order.query.filter_by(user_id=current_user.id).order_by(desc(Order.id)).all()
+    return render_template('products/orders.html', orders=orders)
+
+
+@app.route('/cancel_order/<int:order_id>', methods=['POST'])
+@login_required
+def cancel_order(order_id):
+    order = Order.query.get_or_404(order_id)
+
+    if order.user_id == current_user.id and order.status == 'Pending':
+        order.status = 'Canceled'
+        db.session.commit()
+        flash('Order successfully cancelled.', 'success')  
+    else:
+        flash('Failed to cancel order. Either the order does not exist or it is not pending.')  
+    
+    return redirect(url_for('order'))
+
+def generate_invoice_number(length=8):
+    characters = string.ascii_uppercase + string.digits
+    return ''.join(random.choice(characters) for _ in range(length))
+
+@app.route('/place-order')
+@login_required
+def place_order():
+    cart_items = Cart.query.filter_by(user_id=current_user.id).all()
+    orders = []
+    invoice_number = generate_invoice_number() 
+    for item in cart_items:
+        new_order = Order(
+            quantity=item.quantity,
+            price=float(item.product.price) * item.quantity,
+            user_id=current_user.id,
+            product_id=item.product.id,
+            invoice=invoice_number  
+        )
+        
+        db.session.add(new_order)
+        orders.append(new_order)
+        db.session.delete(item)
+    
+    db.session.commit()
+
+    return redirect(url_for('show_invoice_details', invoice_number=invoice_number))
+
+
+
+@app.route('/invoice-details/<invoice_number>')
+@login_required
+def show_invoice_details(invoice_number):
+    orders = Order.query.filter_by(user_id=current_user.id, invoice=invoice_number).all()
+    user = User.query.get(current_user.id)
+    return render_template('products/invoice_details.html', orders=orders, user=user, invoice_number=invoice_number)
+
+
+@app.route('/get_pdf/<invoice_number>')
+@login_required
+def get_pdf(invoice_number):
+    if current_user.is_authenticated:
+        customer_id = current_user.id
+        user = User.query.filter_by(id=customer_id).first()
+        orders = Order.query.filter_by(user_id=customer_id, invoice=invoice_number).all()
+            
+        if not orders:
+            return redirect(url_for('home'))
+                
+        rendered = render_template('products/pdf.html', orders=orders, user=user, invoice_number=invoice_number)
+        path_to_wkhtmltopdf = 'C:/Program Files/wkhtmltopdf/bin/wkhtmltopdf.exe'
+        config = pdfkit.configuration(wkhtmltopdf=path_to_wkhtmltopdf)
+        pdf = pdfkit.from_string(rendered, False, configuration=config)
+            
+        response = make_response(pdf)
+        response.headers['Content-Type'] = 'application/pdf'
+        response.headers['Content-Disposition'] = f'inline; filename={invoice_number}.pdf'
+        return response
+
+    return redirect(url_for('home'))
+
+
+@app.route('/initkhalti', methods=['POST'])
+@login_required
+def initkhalti():
+    url = "https://a.khalti.com/api/v2/epayment/initiate/"
+    invoice_number = request.form.get('invoice_number')
+    orders = Order.query.filter_by(user_id=current_user.id, invoice=invoice_number).all()
+    
+    if not orders:
+        return jsonify({'error': 'No orders found for this invoice'}), 400
+    
+    amount = sum(order.price for order in orders)
+    purchase_order_id = invoice_number
+    return_url = request.form.get('return_url')
+    
+    payload = {
+        "return_url": return_url,
+        "website_url": "http://yourwebsite.com/",
+        "amount": int(amount * 100), 
+        "purchase_order_id": purchase_order_id,
+        "purchase_order_name": f"Order {invoice_number}",
+        "customer_info": {
+            "name": current_user.username,
+            "email": current_user.email,
+            "phone": "9800000000" 
+        },
+        "amount_breakdown": [
+            {
+                "label": "Total Amount",
+                "amount": int(amount * 100)
+            }
+        ],
+        "product_details": [
+            {
+                "identity": str(order.product.id),
+                "name": order.product.name,
+                "total_price": int(order.price * 100),
+                "quantity": order.quantity,
+                "unit_price": int(order.price / order.quantity * 100)
+            } for order in orders
+        ]
+    }
+    
+    headers = {
+        'Authorization': 'Key 863b3fd5c2bf4c629fc71b4dc7f508ec',
+        'Content-Type': 'application/json'
+    }
+    
+    response = requests.post(url, headers=headers, json=payload)
+    response_data = response.json()
+    
+    if 'payment_url' in response_data:
+        return jsonify({'payment_url': response_data['payment_url']})
+    else:
+        return jsonify({'error': 'Failed to initiate payment'}), 400
+
+
+@app.route('/verify', methods=['GET'])
+@login_required
+def verify():
+    pidx = request.args.get('pidx')
+    purchase_order_id = request.args.get('purchase_order_id')
+    
+    url = "https://a.khalti.com/api/v2/epayment/lookup/"
+    payload = {'pidx': pidx}
+    headers = {
+        'Authorization': 'Key 863b3fd5c2bf4c629fc71b4dc7f508ec',
+        'Content-Type': 'application/json'
+    }
+    
+    response = requests.post(url, headers=headers, json=payload)
+    response_data = response.json()
+    
+    if response_data.get('status') == 'Completed':
+        invoice_number = purchase_order_id 
+        orders = Order.query.filter_by(user_id=current_user.id, invoice=invoice_number).all()
+        for order in orders:
+            order.payment_status = 'Paid'
+        db.session.commit()
+        flash('Payment done successfully')
+        return redirect(url_for('show_invoice_details', invoice_number=invoice_number))
+    else:
+        flash('Payment is cancelled')
+        return redirect(url_for('home'))
