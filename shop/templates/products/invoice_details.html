@@ -56,12 +56,15 @@
                         </td>
                     </tr>
                 </table>
+                
+                {% if any_unpaid %}
                 <form id="payment-form" method="post" action="{{ url_for('initkhalti') }}">
                     <input type="hidden" name="invoice_number" value="{{ invoice_number }}">
                     <input type="hidden" name="amount" value="{{ orders | map(attribute='price') | sum }}">
                     <input type="hidden" name="return_url" value="{{ url_for('verify', _external=True) }}">
                     <button type="submit" id="payment-button">Pay With Khalti</button>
-                </form>                
+                </form>
+                {% endif %}
             </div>
         </div>
     </div>

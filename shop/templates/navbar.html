@@ -106,10 +106,6 @@
               <li class="nav-item">
                 <a href="{{url_for('home')}}" class="nav-link">Home</a>
               </li>
-             
-              <li class="nav-item">
-                <a href="shop.html" class="nav-link">Shop</a>
-              </li>
               <li class="nav-item">
                 <a href="{{url_for('filterproduct')}}" class="nav-link">Filter Product</a>
               </li>
@@ -129,7 +125,7 @@
                   </a>
                 </li>
                 <li>
-                  <a href="wishlist.html" class="mx-3">
+                  <a href="{{url_for('liked_products')}}" class="mx-3">
                     <iconify-icon icon="mdi:heart" class="fs-4"></iconify-icon>
                   </a>
                 </li>

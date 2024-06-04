@@ -3,7 +3,7 @@ from flask_login import login_required, current_user
 from datetime import datetime, timedelta, timezone
 import base64
 from shop import app,db, admin_required
-from .models import Product, Category, Rating
+from .models import Product, Category, Rating, InvoiceCounter
 from shop.products.models import Like, Cart,Order
 from shop.user.models import User
 import pdfkit
@@ -54,16 +54,19 @@ def addproduct():
 def update_product(id):
     categories = Category.query.all()
     product_to_update = Product.query.get_or_404(id)
+    
     if request.method == 'POST':
-        product_to_update.name = request.form['name']
-        product_to_update.price = request.form['price']
-        product_to_update.category_id = request.form['category']
-        product_to_update.description = request.form['desc']
-        product_to_update.tag = request.form['tag']
-        pic = request.files['pic']   
-        img_data = pic.read()
-        encoded_img = base64.b64encode(img_data).decode('utf-8')
-        product_to_update.image_file = encoded_img
+        product_to_update.name = request.form.get('name')
+        product_to_update.price = request.form.get('price')
+        product_to_update.category_id = request.form.get('category')
+        product_to_update.description = request.form.get('desc')
+        product_to_update.tag = request.form.get('tag')
+        if 'pic' in request.files:
+            pic = request.files['pic']
+            if pic.filename != '':
+                img_data = pic.read()
+                encoded_img = base64.b64encode(img_data).decode('utf-8')
+                product_to_update.image_file = encoded_img
         db.session.commit()
         flash('Product Updated Successfully')
         return redirect('/admin_home')
@@ -114,7 +117,7 @@ def delete_category(id):
 @login_required
 def rate_product(product_id, rating_value):
     product = Product.query.get_or_404(product_id)
-    purchase = Order.query.filter_by(user_id=current_user.id, product_id=product_id).first()
+    purchase = Order.query.filter_by(user_id=current_user.id, product_id=product_id, status='Delivered').first()
 
     if not purchase:
         return jsonify({'success': False, 'message': 'You can only rate products you have purchased.'}), 403
@@ -274,6 +277,14 @@ def removecart(id):
     return redirect('/view_cart')
 
 
+@app.route('/liked_products')
+@login_required
+def liked_products():
+    liked_products = Product.query.join(Like).filter(Like.user_id == current_user.id).all()
+
+    return render_template('products/liked_products.html', liked_products=liked_products)
+
+
 @app.route('/purchased-products')
 @login_required
 def purchased_products():
@@ -339,16 +350,26 @@ def cancel_order(order_id):
     
     return redirect(url_for('order'))
 
-def generate_invoice_number(length=8):
-    characters = string.ascii_uppercase + string.digits
-    return ''.join(random.choice(characters) for _ in range(length))
+def generate_invoice_number():
+    counter = InvoiceCounter.query.first()
+    if not counter:
+        counter = InvoiceCounter(current_number=0)
+        db.session.add(counter)
+        db.session.commit()
+        
+    counter.current_number += 1
+    invoice_number = f"{counter.current_number:02d}"
+    db.session.commit()
+
+    return invoice_number
+
 
 @app.route('/place-order')
 @login_required
 def place_order():
     cart_items = Cart.query.filter_by(user_id=current_user.id).all()
     orders = []
-    invoice_number = generate_invoice_number() 
+    invoice_number = generate_invoice_number()
     for item in cart_items:
         new_order = Order(
             quantity=item.quantity,
@@ -372,8 +393,9 @@ def place_order():
 @login_required
 def show_invoice_details(invoice_number):
     orders = Order.query.filter_by(user_id=current_user.id, invoice=invoice_number).all()
+    any_unpaid = any(order.payment_status == 'Unpaid' for order in orders)
     user = User.query.get(current_user.id)
-    return render_template('products/invoice_details.html', orders=orders, user=user, invoice_number=invoice_number)
+    return render_template('products/invoice_details.html', orders=orders, user=user, invoice_number=invoice_number,any_unpaid=any_unpaid)
 
 
 @app.route('/get_pdf/<invoice_number>')
@@ -416,14 +438,14 @@ def initkhalti():
     
     payload = {
         "return_url": return_url,
-        "website_url": "http://yourwebsite.com/",
+        "website_url": "http://127.0.0.1:5000/",
         "amount": int(amount * 100), 
         "purchase_order_id": purchase_order_id,
         "purchase_order_name": f"Order {invoice_number}",
         "customer_info": {
             "name": current_user.username,
             "email": current_user.email,
-            "phone": "9800000000" 
+            "phone": "9800000005" 
         },
         "amount_breakdown": [
             {

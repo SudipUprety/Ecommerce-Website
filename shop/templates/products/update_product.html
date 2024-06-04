@@ -45,8 +45,8 @@
                 <input type="file" class="form-control" name="pic">
               </div>
               <div class="mb-3">
-                <label for="pic" class="form-label">Original Image Name</label>
-                <input type="text" class="form-control form-control-lg" name="pic" value="{{ product_to_update.image_file }}" readonly>
+                <label for="current_image">Current Image</label><br>
+                <img src="data:{{ product_to_update.mime_type }}; base64, {{ product_to_update.image_file }}" alt="thumbnail here" class="img-fluid img-thumbnail shadow-sm" height="150px" width="150px">
             </div>
             <div class="d-grid gap-2">
               <button type="submit" class="btn btn-dark btn-lg rounded-1">Update Product</button>

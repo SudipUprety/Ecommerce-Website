@@ -65,10 +65,12 @@ def logout():
 def profile():
     if request.method == 'POST':
         current_user.username = request.form['username']
-        pic = request.files['pic']   
-        img_data = pic.read()
-        encoded_img = base64.b64encode(img_data).decode('utf-8')
-        current_user.image_file = encoded_img
+        if 'pic' in request.files:
+            pic = request.files['pic']
+            if pic.filename != '':
+                img_data = pic.read()
+                encoded_img = base64.b64encode(img_data).decode('utf-8')
+                current_user.image_file = encoded_img
         current_user.email = request.form["email"]
         db.session.commit()
         flash('Your account has been updated!')

@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% block title %} Liked-products {% endblock %}
+{% block body %}
+<div class="container my-3">
+  <div class="row py-4 pb-0 pb-sm-4 align-items-center ">
+
+    <div class="col-sm-4 col-lg-3 text-center text-sm-start">
+      <div class="main-logo">
+        <a href="{{url_for('home')}}">
+          <img src="{{url_for('static', filename='images/logo.png')}}" alt="logo" class="img-fluid">
+        </a>
+      </div>
+    </div>
+    <div class="container my-3">
+      {% include 'flash_message.html' %}
+        <div class="row py-4 pb-0 pb-sm-4 align-items-center ">
+    {% for product in liked_products %}
+    {% include 'card/card.html' %}
+    {% endfor %}
+</div>
+</div>
+</div>
+</div>
+
+    {% endblock body %}

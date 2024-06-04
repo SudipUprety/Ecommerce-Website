@@ -69,3 +69,10 @@ class Rating(db.Model):
 
     user = db.relationship('User', backref='user_ratings')
     product = db.relationship('Product', backref='product_ratings')
+
+
+class InvoiceCounter(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    current_number = db.Column(db.Integer, nullable=False, default=0)
+
+
